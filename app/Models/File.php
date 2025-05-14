@@ -11,4 +11,9 @@ use App\Traits\HasCreatorAndUpdater;
 class File extends Model
 {
     use HasFactory, NodeTrait, SoftDeletes, HasCreatorAndUpdater;
+
+    public function isOwnedBy($userId)
+    {
+        return $this->created_by === $userId;
+    }
 }
