@@ -17,7 +17,7 @@
                 
                 <div class="px-1 py-1">
                     <MenuItem v-slot="{ active }">
-                        <a class="text-gray-700 block px-4 py-2 text-sm">New Folder</a>
+                        <a href="#" @click.prevent="showCreateFolderModel" class="text-gray-700 block px-4 py-2 text-sm">New Folder</a>
                     </MenuItem>
                 </div>
 
@@ -33,11 +33,21 @@
             </MenuItems>
         </transition>
     </Menu>
+
+    <CreateFolderModel v-model="createFolderModel" />
 </template>
 
 <script setup>
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import CreateFolderModel from '@/Components/App/CreateFolderModel.vue';
+import { ref } from 'vue'; 
 
+const createFolderModel = ref(false);
+
+
+function showCreateFolderModel() {
+    createFolderModel.value = true;
+}
 </script>
 
 <style lang="scss" scoped>
