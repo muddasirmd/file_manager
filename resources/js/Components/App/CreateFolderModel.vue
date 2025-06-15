@@ -32,7 +32,7 @@
 <script setup>
 // Imports
 import modal from '@/Components/Modal.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm,usePage } from '@inertiajs/vue3';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
@@ -49,11 +49,15 @@ const emit = defineEmits(['update:modelValue']);
 
 const form = useForm({
     name: '',
+    parent_id: null,
 });
+
+const page = usePage(); // inertia page object to access props
 
 const folderNameInput = ref(null);
 
 function createFolder(){
+    form.parent_id = page.props.folder.id; // This folder prop coming from the FileController myFiles method method
     form.post(route('folder.create'), {
         preserveScroll: true,
         onSuccess: () => {
