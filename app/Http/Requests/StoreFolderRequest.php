@@ -2,20 +2,17 @@
 
 namespace App\Http\Requests;
 
+use App\Models\File;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Http\Requests\ParentIdBaseRequest;
-use App\Models\File; // Ensure this is the correct namespace for the File model
-use Illuminate\Validation\Rule; // Import the Rule class for validation
-use Illuminate\Support\Facades\Auth; // Import the Auth facade for authentication
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreFolderRequest extends ParentIdBaseRequest
 {
- 
-
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -24,10 +21,10 @@ class StoreFolderRequest extends ParentIdBaseRequest
                 'name' => [
                     'required',
                     Rule::unique(File::class, 'name')
-                    ->where('created_by', Auth::id())
-                    ->where('parent_id', $this->parent_id)
-                    ->whereNull('deleted_at')
-                ],
+                        ->where('created_by', Auth::id())
+                        ->where('parent_id', $this->parent_id)
+                        ->whereNull('deleted_at')
+                ]
             ]
         );
     }
@@ -35,7 +32,7 @@ class StoreFolderRequest extends ParentIdBaseRequest
     public function messages()
     {
         return [
-            'name.unique' => 'Folder ":input" already exists',
+            'name.unique' => 'Folder ":input" already exists'
         ];
     }
 }
