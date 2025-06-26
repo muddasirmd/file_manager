@@ -1,17 +1,28 @@
 <template>
-    
+
     <div class="h-screen bg-gray-50 flex w-full gap-4">
         <Navigation />
 
-        <main class="flex flex-col flex-1 px-4 overflow-hidden">
-            <div class="flex items-center justify-between w-full">
+        <main @drop.prevent="handleDrop" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
+            class="flex flex-col flex-1 px-4 overflow-hidden" :class="dragOver ? 'dropzone' : ''">
 
-                <SearchForm />
-                <UserSettingsDropDown />
-            </div>
-            <div class="flex flex-col flex-1 overflow-hidden">
-                <slot />
-            </div>
+            <template v-if="dragOver" class="text-gray-500 text-center py-8 text-sm">
+                Drop files here to upload
+            </template>
+
+            <template v-else>
+                <div class="flex items-center justify-between w-full">
+
+                    <SearchForm />
+                    <UserSettingsDropDown />
+
+                </div>
+
+                <div class="flex flex-col flex-1 overflow-hidden">
+                    <slot />
+                </div>
+            </template>
+            
 
         </main>
     </div>
@@ -19,11 +30,68 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import Navigation from '@/Components/App/Navigation.vue';
-import { Link } from '@inertiajs/vue3';
 import SearchForm from '@/Components/App/SearchForm.vue'
 import UserSettingsDropDown from '@/Components/App/UserSettingsDropDown.vue'
+import { emitter, FILE_UPLOAD_STARTED } from '@/event-bus';
+import { useForm, usePage } from '@inertiajs/vue3';
 
-const showingNavigationDropdown = ref(false);
+const page = usePage();
+const fileUploadForm = useForm({
+    files: [],
+    parent_id: null,
+});
+
+const dragOver = ref(false);
+
+onMounted(() => {
+    // This is where you can add any initialization logic if needed
+    emitter.on(FILE_UPLOAD_STARTED, uploadFiles)
+});
+
+
+
+function onDragOver(event) {
+    dragOver.value = true;
+
+}
+
+function onDragLeave(event) {
+    dragOver.value = false;
+}
+
+function handleDrop(event) {
+
+    dragOver.value = false;
+    const files = event.dataTransfer.files;
+
+    if (!files.length) {
+        return;
+    }
+
+    uploadFiles(files);
+
+}
+
+function uploadFiles(files) {
+    fileUploadForm.parent_id = page.props.folder.id;
+    fileUploadForm.files = files;
+
+    fileUploadForm.post()
+}
 </script>
+
+<style scoped>
+    .dropzone {
+        width: 100%;
+        height: 100%;
+        color: #8d8d8d;
+        border: 2px dashed gray;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f9f9f9;
+        transition: background-color 0.3s ease;
+    }
+</style>
