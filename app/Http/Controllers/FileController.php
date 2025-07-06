@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,6 +54,14 @@ class FileController extends Controller
         $file->name = $data['name'];
 
         $parent->appendNode($file);
+    }
+
+
+    public function store(StoreFileRequest $request){
+
+        $data = $request->validated();
+
+        dd($data);
     }
 
     private function getRoot()

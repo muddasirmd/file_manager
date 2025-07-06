@@ -40,6 +40,7 @@ import { useForm, usePage } from '@inertiajs/vue3';
 const page = usePage();
 const fileUploadForm = useForm({
     files: [],
+    relative_paths: [],
     parent_id: null,
 });
 
@@ -75,10 +76,13 @@ function handleDrop(event) {
 }
 
 function uploadFiles(files) {
+
+    console.log(files)
     fileUploadForm.parent_id = page.props.folder.id;
     fileUploadForm.files = files;
+    fileUploadForm.relative_paths = [...files].map(f => f.webkitRelativePath);
 
-    fileUploadForm.post()
+    fileUploadForm.post(route('file.store'))
 }
 </script>
 
