@@ -115,7 +115,7 @@ class StoreFileRequest extends ParentIdBaseRequest
 
          foreach ($filePaths as $ind => $filePath){
             $parts = explode('/', $filePath); // ecommerce, products, 1.jpg
-
+            
             // Reference to the current node in the tree. This will allow us to build the tree structure dynamically.
             // We will use a reference to the current node so that we can modify it directly
             $currentNode = &$tree;
@@ -129,14 +129,15 @@ class StoreFileRequest extends ParentIdBaseRequest
 
 
                 // If this is the last part of the path, we will assign the file to this part. Otherwise, we will move the reference to the next part.
-                if($i == count($parts) - 1){
+                if($i === count($parts) - 1){
                     $currentNode[$part] = $files[$ind];
                 }
                 else{
                     $currentNode = &$currentNode[$part];
                 }
             }
+        }
 
-         }
+        return $tree;
     }
 }
