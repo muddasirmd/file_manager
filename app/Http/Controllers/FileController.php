@@ -102,7 +102,6 @@ class FileController extends Controller
                 $this->saveFileTree($file, $folder, $user);
             }
             else{
-
                 $this->saveFile($file, $user, $parent);
             }
         }
