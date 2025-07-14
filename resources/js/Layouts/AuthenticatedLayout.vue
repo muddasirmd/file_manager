@@ -17,15 +17,15 @@
                     <UserSettingsDropDown />
 
                 </div>
-
+            
                 <div class="flex flex-col flex-1 overflow-hidden">
                     <slot />
                 </div>
             </template>
-            
-
         </main>
     </div>
+
+    <FormProgress :form="fileUploadForm" />
 </template>
 
 
@@ -36,6 +36,7 @@ import SearchForm from '@/Components/App/SearchForm.vue'
 import UserSettingsDropDown from '@/Components/App/UserSettingsDropDown.vue'
 import { emitter, FILE_UPLOAD_STARTED } from '@/event-bus';
 import { useForm, usePage } from '@inertiajs/vue3';
+import FormProgress from '@/Components/App/FormProgress.vue';
 
 const page = usePage();
 const fileUploadForm = useForm({
