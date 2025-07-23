@@ -12,7 +12,7 @@ use App\Http\Resources\FileResource;
 
 class FileController extends Controller
 {
-    public function myFiles(?string $folder = null)
+    public function myFiles(Request $request ,string $folder = null)
     {
         if($folder){
             $folder = File::query()->where('created_by', Auth::id())
@@ -28,10 +28,16 @@ class FileController extends Controller
                 ->where('created_by', Auth::id())
                 ->orderBy('is_folder', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->paginate(10);
+                ->paginate(5);
 
 
         $files = FileResource::collection($files);
+
+        // If the request wants JSON, return the files directly
+        // This is useful for API responses or AJAX requests (Pagination)
+        if($request->wantsJson()){
+            return $files;
+        }
 
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]); // include the folder itself in the ancestors
 

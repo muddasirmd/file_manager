@@ -21,6 +21,8 @@
         </ol>
 
        </nav>
+
+       <div class="flex-1 overflow-auto">
         <table class="min-w-full">
             <thead class="bg-gray-100 border-b">
                 <tr>
@@ -39,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="file of files.data" :key="file.id" class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100 cursor-pointer"
+                <tr v-for="file of allFiles.data" :key="file.id" class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100 cursor-pointer"
                     @dblclick="openFolder(file)">
                     <td class="flex items-center px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <FileIcon :file="file" />
@@ -57,9 +59,14 @@
                 </tr>
             </tbody>
         </table>
-        <div v-if="!files.data.length" class="py-8 text-center text-sm text-gray-400">
+
+        <div v-if="!allFiles.data.length" class="py-8 text-center text-sm text-gray-400">
             There is no data in this folder
         </div>
+
+        <div ref="loadMoreIntersect"></div>
+       </div>
+        
     </AuthenticatedLayout>
 </template>
 
@@ -69,12 +76,23 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { router, Link } from '@inertiajs/vue3'
 import { HomeIcon } from '@heroicons/vue/20/solid'
 import FileIcon from '@/Components/App/FileIcon.vue';
+import { onMounted, onUpdated, ref } from 'vue';
+import { httpGet } from '@/Helper/http-helper';
 
-const {files} = defineProps({
+const props = defineProps({
     files: Object,
     folder: Object,
     ancestors: Object,
 });
+
+const loadMoreIntersect = ref(null);
+
+const allFiles = ref({
+    data: props.files.data,
+    next: props.files.links.next
+});
+
+
 
 function openFolder(file) {
     if (!file.is_folder) {
@@ -83,4 +101,32 @@ function openFolder(file) {
 
     router.visit(route('myFiles', {folder: file.path}));
 }
+
+function loadMore(){
+    
+    if(allFiles.value.next === null) {
+        return;
+    }
+
+    httpGet(allFiles.value.next).then(res => {
+        allFiles.value.data = [...allFiles.value.data, ...res.data];
+        allFiles.value.next = res.links.next;
+    })
+}
+
+onUpdated(() => {
+    allFiles.value = {
+        data: props.files.data,
+        next: props.files.links.next
+    };
+})
+
+onMounted(() => {
+    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting &&
+    loadMore()), {
+        rootMargin: '-250px 0px 0px 0px',
+    });
+
+    observer.observe(loadMoreIntersect.value)
+})
 </script>
