@@ -114,6 +114,7 @@ function loadMore(){
     })
 }
 
+// TODO: I think its not being used. Later check it
 onUpdated(() => {
     allFiles.value = {
         data: props.files.data,
@@ -122,8 +123,8 @@ onUpdated(() => {
 })
 
 onMounted(() => {
-    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting &&
-    loadMore()), {
+
+    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
         rootMargin: '-250px 0px 0px 0px',
     });
 

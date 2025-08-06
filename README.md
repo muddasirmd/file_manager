@@ -5,3 +5,5 @@ Things Learned:
 - $wrap = false in Resources
 - PrepareForValidation and PassedValidation funcs in Request Validation
 - Extractred Method
+- Supervisor in Laravel
+- Intersection Observer
