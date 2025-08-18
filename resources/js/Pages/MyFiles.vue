@@ -26,6 +26,9 @@
         <table class="min-w-full">
             <thead class="bg-gray-100 border-b">
                 <tr>
+                    <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left w-[30px] max-w-[30px] pr-0">
+                        <Checkbox @change="onSelectAllChange" v-model:checked="allSelected" />
+                    </th>                    
                     <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
                         Name
                     </th>
@@ -41,8 +44,13 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="file of allFiles.data" :key="file.id" class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100 cursor-pointer"
+                <tr v-for="file, idx of allFiles.data" :key="file.id" class="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-100 cursor-pointer"
+                    :class="(selected[file.id] || allSelected) ? 'bg-blue-50' : 'bg-white'"
+                    @click="$event => { toggleFileSelection($event, file); shiftKeySelection($event, idx); }"
                     @dblclick="openFolder(file)">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-[30px] max-w-[30px] pr-0">
+                        <Checkbox v-model="selected[file.id]" :checked="selected[file.id] || allSelected" />
+                    </td>                     
                     <td class="flex items-center px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <FileIcon :file="file" />
                         {{ file.name }}
@@ -78,6 +86,7 @@ import { HomeIcon } from '@heroicons/vue/20/solid'
 import FileIcon from '@/Components/App/FileIcon.vue';
 import { onMounted, onUpdated, ref } from 'vue';
 import { httpGet } from '@/Helper/http-helper';
+import Checkbox from '@/Components/Checkbox.vue';
 
 const props = defineProps({
     files: Object,
@@ -92,6 +101,11 @@ const allFiles = ref({
     next: props.files.links.next
 });
 
+const allSelected = ref(false)
+const selected = ref({})
+
+const startIndex = ref(0);
+const endIndex = ref(0);
 
 
 function openFolder(file) {
@@ -112,6 +126,64 @@ function loadMore(){
         allFiles.value.data = [...allFiles.value.data, ...res.data];
         allFiles.value.next = res.links.next;
     })
+}
+
+function onSelectAllChange(){
+    allFiles.value.data.forEach(f => {
+        selected.value[f.id] = allSelected.value
+    });
+}
+
+function toggleFileSelection(event,file){
+    
+    // if(!event.shiftKey){
+
+        selected.value[file.id] = !selected.value[file.id];
+        onSelectCheckboxChange(file)
+    // }
+}
+
+function shiftKeySelection(event,idx){
+   
+    if(event.shiftKey){
+       
+        endIndex.value = idx;
+
+        // if endIndex is less than startIndex, swap them
+        if(endIndex.value < startIndex.value){
+            [startIndex.value, endIndex.value] = [endIndex.value, startIndex.value];
+        }
+
+        // select all files between startIndex and endIndex
+        for(let i=startIndex.value; i<= endIndex.value; i++){
+            selected.value[allFiles.value.data[i].id] = true
+        }
+
+        allFilesSelection();
+    }
+    else{
+        startIndex.value = idx;
+    }
+}
+
+function onSelectCheckboxChange(file){
+    if(!selected.value[file.id]){
+        allSelected.value = false;
+    }
+    else{
+        allFilesSelection()
+    }
+}
+
+function allFilesSelection() {
+    let checked = true;
+    for(let file of allFiles.value.data){
+        if(!selected.value[file.id]){
+            checked = false;
+            break;
+        }
+    }
+    allSelected.value = checked;
 }
 
 // TODO: I think its not being used. Later check it
