@@ -10,6 +10,7 @@ use App\Traits\HasCreatorAndUpdater;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
@@ -62,11 +63,13 @@ class File extends Model
             $model->path = (!$model->parent->isRoot() ? $model->parent->path . '/' : '') . Str::slug($model->name);
         });
 
-        static::deleted(function ($model){
-            if(!$model->is_folder){
-                // Delete the file from storage
-                Storage::delete($model->storage_path);
-            }
-        });
+        // TODO: Uncomment below code when implementing trash functionality
+
+        // static::deleted(function ($model){
+        //     if(!$model->is_folder){
+        //         // Delete the file from storage
+        //         Storage::delete($model->storage_path);
+        //     }
+        // });
     }
 }
