@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
-use App\Http\Requests\DestroyFilesRequest;
+use App\Http\Requests\FilesActionRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\File;
@@ -131,11 +131,11 @@ class FileController extends Controller
         $parent->appendNode($model);
     }
 
-    public function destroy(DestroyFilesRequest $request){
+    public function destroy(FilesActionRequest $request){
 
         $data = $request->validated();
         $parent = $request->parent;
-
+        
         if($data['all']){
 
             $children = $parent->children;
@@ -151,6 +151,6 @@ class FileController extends Controller
             }
         }
 
-        return to_route('myFiles', ['folder' => $parent->path]);
+        return to_route('myFiles', ['folder' => $parent ? $parent->path : '/']);
     }
 }

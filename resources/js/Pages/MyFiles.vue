@@ -17,8 +17,11 @@
                     </Link>
                 </div>
             </li>
-
         </ol>
+
+        <div>
+            <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @delete="onDelete" />
+        </div> 
 
        </nav>
 
@@ -84,9 +87,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { router, Link } from '@inertiajs/vue3'
 import { HomeIcon } from '@heroicons/vue/20/solid'
 import FileIcon from '@/Components/App/FileIcon.vue';
-import { onMounted, onUpdated, ref } from 'vue';
+import { computed, onMounted, onUpdated, ref } from 'vue';
 import { httpGet } from '@/Helper/http-helper';
 import Checkbox from '@/Components/Checkbox.vue';
+import DeleteFilesButton from '@/Components/App/DeleteFilesButton.vue';
 
 const props = defineProps({
     files: Object,
@@ -107,6 +111,18 @@ const selected = ref({})
 const startIndex = ref(0);
 const endIndex = ref(0);
 
+/**
+ * Below Conversion:
+ * 
+ * {1: true, 2: false, ...}  => selected.value
+ * 
+ * [[1, true], [2, false], ...]  => Object.enteries(selected.value)
+ * 
+ * [[1, true]]  => Object.enteries(selected.value).filter(a => a[1])
+ * 
+ * [1]  => Object.enteries(selected.value).filter(a => a[1]).map(a => a[0])
+ */
+const selectedIds = computed(() => Object.entries(selected.value).filter(a => a[1]).map(a => a[0]));
 
 function openFolder(file) {
     if (!file.is_folder) {
@@ -184,6 +200,12 @@ function allFilesSelection() {
         }
     }
     allSelected.value = checked;
+}
+
+function onDelete() {
+    // Reset all selections
+    allSelected.value = false;
+    selected.value = {};
 }
 
 // TODO: I think its not being used. Later check it
