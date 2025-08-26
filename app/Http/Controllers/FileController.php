@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use App\Models\File;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\FileResource;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
@@ -154,7 +155,7 @@ class FileController extends Controller
         return to_route('myFiles', ['folder' => $parent ? $parent->path : '/']);
     }
 
-    public function download(FileActionRequest $request){
+    public function download(FilesActionRequest $request){
         
         $data = $request->validated();
         $parent = $request->parent;
@@ -186,9 +187,18 @@ class FileController extends Controller
                     $fileName = $file->name . '.zip';
                 }
                 else{
-                    $dest = 'public/'.pathinfo($file->storage_path);
-                    Storage::copy($file->storage_path, $dest);
+                    $dest = 'public/'.pathinfo($file->storage_path, PATHINFO_BASENAME);
+                    
+                    // Storage::copy($file->storage_path, $dest);
 
+                    $filename = pathinfo($file->storage_path, PATHINFO_BASENAME);
+
+                    // Copy from private to public
+                    Storage::disk('public')->put(
+                        $filename,
+                        Storage::disk('local')->get($file->storage_path)
+                    );
+                
                     $url = asset(Storage::url($dest));
                     $fileName = $file->name;
                 }
@@ -203,7 +213,7 @@ class FileController extends Controller
 
         return [
             'url' => $url,
-            'fileName' => $fileName
+            'filename' => $fileName
         ];
     }
 
