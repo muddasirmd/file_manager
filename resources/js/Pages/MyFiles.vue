@@ -20,6 +20,7 @@
         </ol>
 
         <div>
+            <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
             <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @delete="onDelete" />
         </div> 
 
@@ -91,6 +92,7 @@ import { computed, onMounted, onUpdated, ref } from 'vue';
 import { httpGet } from '@/Helper/http-helper';
 import Checkbox from '@/Components/Checkbox.vue';
 import DeleteFilesButton from '@/Components/App/DeleteFilesButton.vue';
+import DownloadFilesButton from '@/Components/App/DownloadFilesButton.vue';
 
 const props = defineProps({
     files: Object,
