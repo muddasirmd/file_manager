@@ -11,6 +11,7 @@ use App\Models\File;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\FileResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class FileController extends Controller
 {
@@ -189,10 +190,12 @@ class FileController extends Controller
                 else{
                     $dest = 'public/'.pathinfo($file->storage_path, PATHINFO_BASENAME);
                     
+                    // if files in storage folder are saved in app/
                     // Storage::copy($file->storage_path, $dest);
 
                     $filename = pathinfo($file->storage_path, PATHINFO_BASENAME);
 
+                    // if files in storage folder are saved in app/private
                     // Copy from private to public
                     Storage::disk('public')->put(
                         $filename,
@@ -220,20 +223,19 @@ class FileController extends Controller
     public function createZip($files): string
     {
         $zipPath = 'zip/'. Str::random(). '.zip';
-        $publicPath = "public/$zipPath";
+        $publicPath = Storage::disk('public')->path('');
 
-        if(!is_dir(dirname($publicPath))){
-            Storage::makeDirectory(dirname($publicPath));
+        if (!Storage::disk('public')->exists('zip')) {
+            Storage::disk('public')->makeDirectory('zip');
         }
 
-        $zipFile = Storage::path($publicPath);
+        $zipFile =  $publicPath . $zipPath;
 
         $zip = new \ZipArchive();
 
         if($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true){
             $this->addFilesToZip($zip, $files);
         }
-
 
         $zip->close();
 
