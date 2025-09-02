@@ -19,7 +19,7 @@
 
 <script setup>
 import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
-import { showErrorDialog } from '@/event-bus';
+import { showErrorDialog, showSuccessNotification } from '@/event-bus';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -73,7 +73,7 @@ function onDeleteConfirm() {
             showDeleteDialog.value = false;
             // Emit an event to notify the parent component that files have been deleted
             emit('delete');
-            // TODO show success notification
+            showSuccessNotification('Selected files have been deleted')
         }
     });
 }
