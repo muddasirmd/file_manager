@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\FilesActionRequest;
+use App\Http\Requests\TrashFilesRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\File;
@@ -31,7 +32,7 @@ class FileController extends Controller
                 ->where('created_by', Auth::id())
                 ->orderBy('is_folder', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->paginate(5);
+                ->paginate(10);
 
 
         $files = FileResource::collection($files);
@@ -47,6 +48,25 @@ class FileController extends Controller
         $folder = new FileResource($folder);
         
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
+    }
+
+    public function trash(Request $request){
+        
+        $files = File::onlyTrashed()
+            ->where('created_by', Auth::id())
+            ->orderBy('is_folder', 'desc')
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(10);
+
+        // If the request wants JSON, return the files directly
+        // This is useful for API responses or AJAX requests (Pagination)
+        if($request->wantsJson()){
+            return $files;
+        }
+
+        $files = FileResource::collection($files);
+
+        return Inertia::render('Trash', compact('files'));
     }
 
     public function createFolder(StoreFolderRequest $request)
@@ -137,19 +157,21 @@ class FileController extends Controller
 
         $data = $request->validated();
         $parent = $request->parent;
-        
+
         if($data['all']){
 
             $children = $parent->children;
 
             foreach($children as $child){
-                $child->delete();
+                // $child->delete(); // will update deleted_at of children
+                $child->moveToTrash();
             }
         }
         else{
             foreach($data['ids'] ?? [] as $id){
                 $file = File::find($id);
-                $file->delete();
+                // $file->delete(); // will also delete children files of folder
+                $file->moveToTrash();
             }
         }
 
@@ -252,5 +274,45 @@ class FileController extends Controller
                 $zip->addFile(Storage::path($file->storage_path), $ancestors . $file->name);
             }
         }
+    }
+
+    public function restore(TrashFilesRequest $request){
+        
+        $data = $request->validated();
+        if($data['all']){
+            $records = File::onlyTrashed()->get();
+            foreach($records as $rec){
+                $rec->restore();
+            }
+        }
+        else{
+            $ids = $data['ids'] ?? [];
+            $records = File::onlyTrashed()->whereIn('id', $ids)->get();
+            foreach($records as $rec){
+                $rec->restore();
+            }
+        }
+
+        return to_route('trash');
+    }
+
+    public function deleteForever(TrashFilesRequest $request){
+
+        $data = $request->validated();
+        if($data['all']){
+            $records = File::onlyTrashed()->get();
+            foreach($records as $rec){
+                $rec->deleteForever();
+            }
+        }
+        else{
+            $ids = $data['ids'] ?? [];
+            $records = File::onlyTrashed()->whereIn('id', $ids)->get();
+            foreach($records as $rec){
+                $rec->deleteForever();
+            }
+        }
+
+        return to_route('trash');
     }
 }
