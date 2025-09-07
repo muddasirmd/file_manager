@@ -17,7 +17,7 @@ class ParentIdBaseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $this->parent = File::query()->where('id', $this->input('parent_id'))->first();
+        $this->parent = File::query()->where('id', $this->input('parentId'))->first();
 
         if ($this->parent && !$this->parent->isOwnedBy(Auth::id())) {
             return false;
@@ -33,12 +33,12 @@ class ParentIdBaseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'parent_id' => [
+            'parentId' => [
                 Rule::exists(File::class, 'id')
                     ->where(function (Builder $query) {
                         return $query
-                            ->where('is_folder', '=', '1')
-                            ->where('created_by', '=', Auth::id());
+                            ->where('is_folder', '1')
+                            ->where('created_by', Auth::id());
                     })
             ]
         ];

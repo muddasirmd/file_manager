@@ -20,7 +20,10 @@ Route::controller(FileController::class)->middleware(['auth', 'verified'])->grou
   Route::post('/folder/create','createFolder')->name('folder.create');
   Route::post('/file', 'store')->name('file.store');
   Route::delete('/file', 'destroy')->name('file.delete');
+  Route::post('/file/restore', 'restore')->name('file.restore');
+  Route::post('/file/delete-forever', 'deleteForever')->name('file.deleteForever');
   Route::get('/file/download', 'download')->name('file.download');
+  Route::get('/trash', 'trash')->name('trash');
 });
 
 Route::get('/dashboard', function () {
