@@ -69,7 +69,7 @@ function onConfirm() {
         form.ids = props.selectedIds;
     }
 
-    form.post(route('file.deleteForever'), {
+    form.delete(route('file.deleteForever'), {
         onSuccess: () => {
             showConfirmationDialog.value = false;
             // Emit an event to notify the parent component that files have been deleted
