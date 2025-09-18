@@ -59,6 +59,7 @@ function onClick() {
 
     form.post(route('file.addToFavourites'), {
         onSuccess: () => {
+            form.ids = [];
             showSuccessNotification('Selected files have been added to favourites')
         }
     });

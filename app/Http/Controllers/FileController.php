@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\FileResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\StarredFile;
+use Illuminate\Support\Carbon;
 
 class FileController extends Controller
 {
@@ -294,7 +296,8 @@ class FileController extends Controller
         }
 
         return to_route('trash');
-    }
+    }    
+    
 
     public function deleteForever(TrashFilesRequest $request){
 
@@ -314,5 +317,43 @@ class FileController extends Controller
         }
 
         return to_route('trash');
+    }
+
+
+    public function addToFavourites(FilesActionRequest $request){
+        
+        $data = $request->validated();
+        $parent = $request->parent;
+
+        $all = $data['all'] ?? false;
+        $ids = $data['ids'] ?? [];
+
+        if(!$all && empty($ids)){
+            return [
+                'message' => 'Please select files'
+            ];
+        }
+
+        if($all){
+            $children = $parent->children;
+        }
+        else{
+            $children = File::find($ids);
+        }
+
+        $data = [];
+        foreach($children as $child){
+            $data[] = [
+                'file_id' => $child->id,
+                'user_id' => Auth::id(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ];
+        }
+
+        // Batch Insert
+        StarredFile::insert($data);
+
+        return to_route('myFiles');
     }
 }
