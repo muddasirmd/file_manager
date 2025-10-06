@@ -6,6 +6,7 @@ use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\TrashFilesRequest;
+use App\Http\Requests\AddToFavouritesRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\File;
@@ -34,6 +35,7 @@ class FileController extends Controller
                 ->where('created_by', Auth::id())
                 ->orderBy('is_folder', 'desc')
                 ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->paginate(10);
 
 
@@ -320,40 +322,34 @@ class FileController extends Controller
     }
 
 
-    public function addToFavourites(FilesActionRequest $request){
+    public function addToFavourites(AddToFavouritesRequest $request){
         
         $data = $request->validated();
-        $parent = $request->parent;
+    
+        $id = $data['id'];
+        $file = File::find($id);
+        $user_id = Auth::id();
 
-        $all = $data['all'] ?? false;
-        $ids = $data['ids'] ?? [];
-
-        if(!$all && empty($ids)){
-            return [
-                'message' => 'Please select files'
-            ];
-        }
-
-        if($all){
-            $children = $parent->children;
+        $starredFile = StarredFile::query()
+            ->where('file_id', $file->id)
+            ->where('user_id', $user_id)
+            ->first();
+        
+        if($starredFile){
+            $starredFile->delete();
         }
         else{
-            $children = File::find($ids);
-        }
-
-        $data = [];
-        foreach($children as $child){
-            $data[] = [
-                'file_id' => $child->id,
-                'user_id' => Auth::id(),
+            StarredFile::create([
+                'file_id' => $file->id,
+                'user_id' => $user_id,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-            ];
+            ]);
         }
-
+      
         // Batch Insert
-        StarredFile::insert($data);
+        // StarredFile::insert($data);
 
-        return to_route('myFiles');
+        return redirect()->back()->with('success', 'Favourites updated!');
     }
 }

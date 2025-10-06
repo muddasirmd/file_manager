@@ -7,3 +7,4 @@ Things Learned:
 - Extractred Method
 - Supervisor in Laravel
 - Intersection Observer
+- Batch Insert (Unlike create() or save(), insert() does not fire model events (creating, created) and does not auto-manage timestamps unless you add them manually.)
