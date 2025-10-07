@@ -19,8 +19,12 @@
             </li>
         </ol>
 
-        <div>
-        
+        <div class="flex">
+            <label class="flex items-center mr-3">
+                Only Favourites
+                <Checkbox @change="showOnlyFavourites" 
+                    v-model:checked="onlyFavourites" class="ml-2" />
+            </label>
             <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
             <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @delete="onDelete" />
         </div> 
@@ -128,8 +132,12 @@ const allFiles = ref({
 const allSelected = ref(false)
 const selected = ref({})
 
+const onlyFavourites = ref(false)
+
 const startIndex = ref(0);
 const endIndex = ref(0);
+
+let params = null;
 
 /**
  * Below Conversion:
@@ -240,6 +248,18 @@ function addRemoveFavourite(file) {
         })
 }
 
+function showOnlyFavourites(){
+    
+    if(onlyFavourites.value){
+        params.set('favourites', 1);
+    }
+    else{
+        params.delete('favourites');
+    }
+    
+    router.get(window.location.pathname + '?' + params.toString());
+}
+
 // TODO: I think its not being used. Later check it
 onUpdated(() => {
     allFiles.value = {
@@ -249,6 +269,9 @@ onUpdated(() => {
 })
 
 onMounted(() => {
+
+    params = new URLSearchParams(window.location.search);
+    onlyFavourites.value = params.get('favourites') == 1;
 
     const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
         rootMargin: '-250px 0px 0px 0px',
