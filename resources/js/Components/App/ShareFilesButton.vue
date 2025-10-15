@@ -13,12 +13,12 @@
     Share
     </button>
 
-    <ShareFilesModal v-model="showEmailModal" />
+    <ShareFilesModal v-model="showEmailModal" :all-selected="allSelected" :selected-ids="selectedIds"/>
 </template>
 
 <script setup>
 
-import { showErrorDialog, showSuccessNotification } from '@/event-bus';
+import { showErrorDialog} from '@/event-bus';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import ShareFilesModal from './ShareFilesModal.vue';
@@ -55,28 +55,6 @@ function onClick() {
     showEmailModal.value = true;
 }
 
-function onCancel(){
-    showEmailModal.value = false;
-}
-
-function onConfirm() {
-    
-    if(props.allSelected){
-        form.all = true;
-    }
-    else{
-        form.ids = props.selectedIds;
-    }
-
-    form.post(route('file.restore'), {
-        onSuccess: () => {
-            showEmailModal.value = false;
-            // Emit an event to notify the parent component that files have been restored
-            emit('restore');
-            showSuccessNotification('Selected files have been restored')
-        }
-    });
-}
 </script>
 
 <style lang="scss" scoped>
