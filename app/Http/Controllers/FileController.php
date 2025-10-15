@@ -7,14 +7,18 @@ use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\TrashFilesRequest;
 use App\Http\Requests\AddToFavouritesRequest;
+use App\Http\Requests\ShareFilesRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\File;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\FileResource;
+use App\Models\FileShare;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\StarredFile;
+use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 class FileController extends Controller
@@ -366,5 +370,62 @@ class FileController extends Controller
         // StarredFile::insert($data);
 
         return redirect()->back()->with('success', 'Favourites updated!');
+    }
+
+
+    public function share(ShareFilesRequest $request){
+
+        $data = $request->validated();
+        $parent = $request->parent;
+
+        $all = $data['all'] ?? false;
+        $ids = $data['ids'] ?? [];
+        $email = $data['email'];
+
+        if(!$all && empty($ids)){
+            return [
+                'message' => 'Please select files to share'
+            ];
+        }
+
+        $user = User::query()->where('email', $email)->first();
+
+        if(!$user){
+            return redirect()->back()->with('error', 'User with this email does not exist');
+        }
+
+        if($all){
+            $files = $parent->children;
+        }
+        else{
+            $files = File::find($ids);
+        }
+
+        $data = [];
+        $ids = Arr::pluck($files, 'id');
+        $existingFileIds = FileShare::query()
+            ->where('user_id', $user->id)
+            ->whereIn('file_id', $ids)
+            ->get()
+            ->keyBy('file_id');
+
+        foreach($files as $file){
+            if($existingFileIds->has($file->id)){
+                continue;
+            }
+            
+            $data[] = [
+                'file_id' => $file->id,
+                'user_id' => $user->id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ];
+        }
+
+        FileShare::insert($data);
+
+        // TODO: Send Email to the user
+
+        return redirect()->back();
     }
 }

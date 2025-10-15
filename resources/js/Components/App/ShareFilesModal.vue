@@ -1,5 +1,5 @@
 <template>
-    <modal :show="modelValue" @show="onShow" max-width="sm">
+    <modal :show="props.modelValue" @show="onShow" max-width="sm">
         <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-900">
                 Share Files
@@ -10,9 +10,11 @@
                             ref="shareInput"
                             id="shareEmail" v-model="form.email"
                             class="mt-1 block w-full"
+                            :class="form.errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
                             placeholder="Enter Email Address"
                             @keyup.enter="share"
                 />
+                <InputError :message="form.errors.email" class="mt-2" />
                 
             </div>
             <div class="mt-6 flex justify-end">
@@ -37,17 +39,22 @@ import TextInput from '@/Components/TextInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { nextTick, ref } from 'vue';
-
+import InputError from '@/Components/InputError.vue';
+import { showSuccessNotification } from '@/event-bus';
 
 // Props
-const {modelValue} = defineProps({
-    modelValue: Boolean
+const props = defineProps({
+    modelValue: Boolean,
+    allSelected: Boolean,
+    selectedIds: Array
 });
 const emit = defineEmits(['update:modelValue']);
 
 const form = useForm({
     email: null,
-    file_ids: [],
+    all: false,
+    ids: [],
+    parent_id: null
 });
 
 const page = usePage(); // inertia page object to access props
@@ -56,12 +63,25 @@ const shareInput = ref(null);
 
 function share(){
     form.parent_id = page.props.folder.id; // This folder prop coming from the FileController myFiles method method
+    
+    if(props.allSelected){
+        form.all = true;
+        form.ids = [];
+    }
+    else{
+        form.all = false;
+        form.ids = props.selectedIds;
+    }
+
+    const email = form.email;
+
     form.post(route('file.share'), {
         preserveScroll: true,
         onSuccess: () => {
             closeModal()
             form.reset();
             // Show success notification
+            showSuccessNotification(`Selected Files have been shared to "${email}" if the emails exists in our system.`);
         },
         onError: () => {
             shareInput.value.focus();
