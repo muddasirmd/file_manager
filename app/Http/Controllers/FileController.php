@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\FilesActionRequest;
+use App\Http\Requests\ShareFilesRequest;
 use App\Http\Requests\TrashFilesRequest;
 use App\Http\Requests\AddToFavouritesRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\File;
+use App\Models\FileShare;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\FileResource;
 use Illuminate\Support\Facades\Storage;
@@ -366,5 +368,50 @@ class FileController extends Controller
         // StarredFile::insert($data);
 
         return redirect()->back()->with('success', 'Favourites updated!');
+    }
+
+    public function share(ShareFilesRequest $request){
+                
+        $data = $request->validated();
+        $parent = $request->parent;
+
+        $all = $data['all'] ?? false;
+        $email = $data['email'] ?? '';
+        $ids = $data['ids'] ?? [];
+
+        if(!$all && empty($ids)){
+            return [
+                'message' => 'Please select files to share'
+            ];
+        }
+
+        $user = User::query()->where('email', $email)->first();
+
+        if(!$user){
+            return redirect()->back();
+        }
+
+        if($all){
+            $files = $parent->children;
+        }
+        else{
+            $files = File::find($ids);
+        }
+
+        $data = [];
+        foreach($files as $file){
+            $data[] = [
+                'file_id' => $file->id,
+                'user_id' => $user->id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ];
+        }
+
+        FileShare::insert($data);
+
+        // TODO: Send Email Notification to the user
+
+        return redirect()->back();
     }
 }
