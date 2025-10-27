@@ -25,6 +25,8 @@ Route::controller(FileController::class)->middleware(['auth', 'verified'])->grou
   Route::post('/file/add-to-favourites', 'addToFavourites')->name('file.addToFavourites');
   Route::get('/file/download', 'download')->name('file.download');
   Route::post('/file/share', 'share')->name('file.share');
+  Route::get('/shared-with-me', 'sharedWithMe')->name('file.sharedWithMe');
+  Route::get('/shared-byh-me', 'sharedByMe')->name('file.sharedByMe');
   Route::get('/trash', 'trash')->name('trash');
 });
 
