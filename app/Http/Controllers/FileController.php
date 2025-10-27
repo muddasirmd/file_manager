@@ -20,6 +20,8 @@ use App\Models\StarredFile;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ShareFilesMail;
 
 class FileController extends Controller
 {
@@ -424,7 +426,7 @@ class FileController extends Controller
 
         FileShare::insert($data);
 
-        // TODO: Send Email to the user
+        Mail::to($user)->send(new ShareFilesMail($user, Auth::user(), $files));
 
         return redirect()->back();
     }
