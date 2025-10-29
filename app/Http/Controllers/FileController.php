@@ -222,43 +222,7 @@ class FileController extends Controller
             $fileName = $parent->name . '.zip';
         }
         else{
-            if(count($ids) == 1){
-                $file = File::find($ids[0]);
-                if($file->is_folder){
-                    if($file->children->count() == 0){
-                        return [
-                            'message' => 'The folder is empty'
-                        ];
-                    }
-                    
-                    $url = $this->createZip($file->children);
-                    $fileName = $file->name . '.zip';
-                }
-                else{
-                    $dest = 'public/'.pathinfo($file->storage_path, PATHINFO_BASENAME);
-                    
-                    // if files in storage folder are saved in app/
-                    // Storage::copy($file->storage_path, $dest);
-
-                    $filename = pathinfo($file->storage_path, PATHINFO_BASENAME);
-
-                    // if files in storage folder are saved in app/private
-                    // Copy from private to public
-                    Storage::disk('public')->put(
-                        $filename,
-                        Storage::disk('local')->get($file->storage_path)
-                    );
-                
-                    $url = asset(Storage::url($dest));
-                    $fileName = $file->name;
-                }
-            }
-            else{
-                $files = File::query()->whereIn('id', $ids)->get();
-                $url = $this->createZip($files);
-
-                $fileName = $parent->name . '.zip';
-            }
+            [$url, $fileName] = $this->getDownloadUrl($ids, $parent->name);
         }
 
         return [
@@ -433,11 +397,7 @@ class FileController extends Controller
 
     public function sharedWithMe(Request $request){
         
-        $files = File::query()
-            ->join('file_shares', 'file_shares.file_id', 'files.id')
-            ->where('file_shares.user_id', Auth::id())
-            ->orderBy('file_shares.created_at', 'desc')
-            ->orderBy('files.id', 'desc')
+        $files = File::getSharedWithMe()
             ->paginate(10);
 
         // If the request wants JSON, return the files directly
@@ -454,11 +414,7 @@ class FileController extends Controller
 
     public function sharedByMe(Request $request){
         
-        $files = File::query()
-            ->join('file_shares', 'file_shares.file_id', 'files.id')
-            ->where('files.created_by', Auth::id())
-            ->orderBy('file_shares.created_at', 'desc')
-            ->orderBy('files.id', 'desc')
+        $files = File::getSharedByMe()
             ->paginate(10);
 
         // If the request wants JSON, return the files directly
@@ -470,6 +426,84 @@ class FileController extends Controller
         $files = FileResource::collection($files);
 
         return Inertia::render('SharedWithMe', compact('files'));
+    }
+
+    
+    public function downloadSharedWithMe(FilesActionRequest $request){
+        
+        $data = $request->validated();
+
+        $all = $data['all'] ?? false;
+        $ids = $data['ids'] ?? [];
+
+        if(!$all && empty($ids)){
+            return [
+                'message' => 'Please select files to download'
+            ];
+        }
+
+        $zipName = 'shared_with_me';
+
+        if($all){
+            $files = File::getSharedWithMe()->get();
+            $url = $this->createZip($files);
+            $fileName = $zipName.".zip";
+        }
+        else{
+            [$url, $fileName] = $this->getDownloadUrl($ids, $zipName);
+        }
+
+        return [
+            'url' => $url,
+            'filename' => $fileName
+        ];
+    }
+
+    private function getDownloadUrl(array $files, $zipName){
+
+        
+            if(count($ids) == 1){
+                $file = File::find($ids[0]);
+                if($file->is_folder){
+                    if($file->children->count() == 0){
+                        return [
+                            'message' => 'The folder is empty'
+                        ];
+                    }
+                    
+                    $url = $this->createZip($file->children);
+                    $fileName = $file->name . '.zip';
+                }
+                else{
+                    $dest = 'public/'.pathinfo($file->storage_path, PATHINFO_BASENAME);
+                    
+                    // if files in storage folder are saved in app/
+                    // Storage::copy($file->storage_path, $dest);
+
+                    $filename = pathinfo($file->storage_path, PATHINFO_BASENAME);
+
+                    // if files in storage folder are saved in app/private
+                    // Copy from private to public
+                    Storage::disk('public')->put(
+                        $filename,
+                        Storage::disk('local')->get($file->storage_path)
+                    );
+                
+                    $url = asset(Storage::url($dest));
+                    $fileName = $file->name;
+                }
+            }
+            else{
+                $files = File::query()->whereIn('id', $ids)->get();
+                $url = $this->createZip($files);
+
+                $fileName = $zipName . '.zip';
+            }
+
+            return [
+                'url' => $url,
+                'filename' => $fileName
+            ];
     }
     
 }

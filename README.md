@@ -4,6 +4,7 @@ Things Learned:
 - useForm to set and submit data
 - $wrap = false in Resources
 - PrepareForValidation and PassedValidation funcs in Request Validation
+- Custom Validation Rules
 - Extractred Method
 - Supervisor in Laravel
 - Intersection Observer

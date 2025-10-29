@@ -100,4 +100,21 @@ class File extends Model
     public function starred(){
         return $this->hasOne(StarredFile::class, 'file_id', 'id')->where('user_id', Auth::id());
     }
+
+    public static function getSharedWithMe(){
+        return File::query()
+            ->join('file_shares', 'file_shares.file_id', 'files.id')
+            ->where('file_shares.user_id', Auth::id())
+            ->orderBy('file_shares.created_at', 'desc')
+            ->orderBy('files.id', 'desc');
+    }
+
+    public static function getSharedByMe()
+    {
+        File::query()
+            ->join('file_shares', 'file_shares.file_id', 'files.id')
+            ->where('files.created_by', Auth::id())
+            ->orderBy('file_shares.created_at', 'desc')
+            ->orderBy('files.id', 'desc');
+    }
 }
