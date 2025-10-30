@@ -17,18 +17,24 @@ Route::get('/', function () {
 
 Route::controller(FileController::class)->middleware(['auth', 'verified'])->group(function () {
   Route::get('/my-files/{folder?}', 'myFiles')->where('folder', '(.*)')->name('myFiles');
+  
   Route::post('/folder/create','createFolder')->name('folder.create');
   Route::post('/file', 'store')->name('file.store');
   Route::delete('/file', 'destroy')->name('file.delete');
-  Route::post('/file/restore', 'restore')->name('file.restore');
-  Route::delete('/file/delete-forever', 'deleteForever')->name('file.deleteForever');
+  
   Route::post('/file/add-to-favourites', 'addToFavourites')->name('file.addToFavourites');
+  
   Route::get('/file/download', 'download')->name('file.download');
   Route::get('/file/download-shared-with-me', 'downloadSharedWithMe')->name('file.downloadSharedWithMe');
+  Route::get('/file/download-shared-by-me', 'downloadSharedByMe')->name('file.downloadSharedByMe');
+  
   Route::post('/file/share', 'share')->name('file.share');
   Route::get('/shared-with-me', 'sharedWithMe')->name('file.sharedWithMe');
-  Route::get('/shared-byh-me', 'sharedByMe')->name('file.sharedByMe');
+  Route::get('/shared-by-me', 'sharedByMe')->name('file.sharedByMe');
+  
   Route::get('/trash', 'trash')->name('trash');
+  Route::post('/file/restore', 'restore')->name('file.restore');
+  Route::delete('/file/delete-forever', 'deleteForever')->name('file.deleteForever');
 });
 
 Route::get('/dashboard', function () {
