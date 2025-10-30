@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Models\File;
 
 class FilesActionRequest extends ParentIdBaseRequest
 {
@@ -27,7 +28,7 @@ class FilesActionRequest extends ParentIdBaseRequest
                             ->where(function ($query){
                                 $query->where('files.created_by', Auth::id())
                                 ->orWhere('file_shares.user_id', Auth::id());
-                            });
+                            })->first();
                     if(!$file){
                         $fail('Invalid ID "' . $id . '"');
                     }

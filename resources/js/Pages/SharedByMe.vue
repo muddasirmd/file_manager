@@ -2,7 +2,7 @@
     <AuthenticatedLayout>
        <nav class="flex items-center justify-end p-1 mb-3">
         <div>
-            <DownloadFilesButton :all="allSelected" :ids="selectedIds" :shared-with-me="true" class="mr-2" />
+            <DownloadFilesButton :all="allSelected" :ids="selectedIds" :shared-by-me="true" class="mr-2" />
         </div> 
 
        </nav>

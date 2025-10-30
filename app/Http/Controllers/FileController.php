@@ -425,7 +425,7 @@ class FileController extends Controller
 
         $files = FileResource::collection($files);
 
-        return Inertia::render('SharedWithMe', compact('files'));
+        return Inertia::render('SharedByMe', compact('files'));
     }
 
     
@@ -450,6 +450,39 @@ class FileController extends Controller
             $fileName = $zipName.".zip";
         }
         else{
+            // dd ($this->getDownloadUrl($ids, $zipName));
+            [$url, $fileName] = $this->getDownloadUrl($ids, $zipName);
+        }
+
+        return [
+            'url' => $url,
+            'filename' => $fileName
+        ];
+    }    
+    
+    
+    public function downloadSharedByMe(FilesActionRequest $request){
+        
+        $data = $request->validated();
+
+        $all = $data['all'] ?? false;
+        $ids = $data['ids'] ?? [];
+
+        if(!$all && empty($ids)){
+            return [
+                'message' => 'Please select files to download'
+            ];
+        }
+
+        $zipName = 'shared_by_me';
+
+        if($all){
+            $files = File::getSharedByMe()->get();
+            $url = $this->createZip($files);
+            $fileName = $zipName.".zip";
+        }
+        else{
+            // dd ($this->getDownloadUrl($ids, $zipName));
             [$url, $fileName] = $this->getDownloadUrl($ids, $zipName);
         }
 
@@ -459,7 +492,7 @@ class FileController extends Controller
         ];
     }
 
-    private function getDownloadUrl(array $files, $zipName){
+    private function getDownloadUrl(array $ids, $zipName){
 
         
             if(count($ids) == 1){
@@ -500,10 +533,7 @@ class FileController extends Controller
                 $fileName = $zipName . '.zip';
             }
 
-            return [
-                'url' => $url,
-                'filename' => $fileName
-            ];
+            return [ $url, $fileName];
     }
     
 }
