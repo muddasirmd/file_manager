@@ -27,6 +27,8 @@ class FileController extends Controller
 {
     public function myFiles(Request $request ,string $folder = null)
     {
+        $search = $request->get('search');
+
         if($folder){
             $folder = File::query()->where('created_by', Auth::id())
                 ->where('path', $folder)
@@ -42,11 +44,19 @@ class FileController extends Controller
 
         $query = File::query()
                 ->select('files.*')
-                ->where('parent_id', $folder->id)
                 ->where('created_by', Auth::id())
+                ->where('_lft', '!=', 1) // exclude root folder
                 ->orderBy('is_folder', 'desc')
                 ->orderBy('files.created_at', 'desc')
                 ->orderBy('files.id', 'desc');
+
+        if($search){
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+        else{
+            $query->where('parent_id', $folder->id);
+        }
+
         if($favourites){
             // $query->whereIn('id', function($query){
             //     $query->select('file_id')
