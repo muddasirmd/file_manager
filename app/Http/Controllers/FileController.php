@@ -41,7 +41,6 @@ class FileController extends Controller
 
         $favourites = (int)$request->get('favourites');
 
-
         $query = File::query()
                 ->select('files.*')
                 ->where('created_by', Auth::id())
@@ -85,13 +84,64 @@ class FileController extends Controller
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
     }
 
+    public function sharedWithMe(Request $request){
+        
+        $search = $request->get('search');
+        $query = File::getSharedWithMe();
+        
+        if($search){
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+        $files = $query->paginate(10);
+
+        // If the request wants JSON, return the files directly
+        // This is useful for API responses or AJAX requests (Pagination)
+        if($request->wantsJson()){
+            return $files;
+        }
+
+        $files = FileResource::collection($files);
+
+        return Inertia::render('SharedWithMe', compact('files'));
+    }
+
+
+    public function sharedByMe(Request $request){
+        
+        $search = $request->get('search');
+        $query = File::getSharedByMe();
+
+        if($search){
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+        $files = $query->paginate(10);
+
+        // If the request wants JSON, return the files directly
+        // This is useful for API responses or AJAX requests (Pagination)
+        if($request->wantsJson()){
+            return $files;
+        }
+
+        $files = FileResource::collection($files);
+
+        return Inertia::render('SharedByMe', compact('files'));
+    }
+
     public function trash(Request $request){
         
-        $files = File::onlyTrashed()
+        $search = $request->get('search');
+
+        $query = File::onlyTrashed()
             ->where('created_by', Auth::id())
             ->orderBy('is_folder', 'desc')
             ->orderBy('deleted_at', 'desc')
-            ->paginate(10);
+            ->orderBy('files.id', 'desc');
+
+        if($search){
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+        
+        $files = $query->paginate(10);
 
         // If the request wants JSON, return the files directly
         // This is useful for API responses or AJAX requests (Pagination)
@@ -403,39 +453,6 @@ class FileController extends Controller
         Mail::to($user)->send(new ShareFilesMail($user, Auth::user(), $files));
 
         return redirect()->back();
-    }
-
-    public function sharedWithMe(Request $request){
-        
-        $files = File::getSharedWithMe()
-            ->paginate(10);
-
-        // If the request wants JSON, return the files directly
-        // This is useful for API responses or AJAX requests (Pagination)
-        if($request->wantsJson()){
-            return $files;
-        }
-
-        $files = FileResource::collection($files);
-
-        return Inertia::render('SharedWithMe', compact('files'));
-    }
-
-
-    public function sharedByMe(Request $request){
-        
-        $files = File::getSharedByMe()
-            ->paginate(10);
-
-        // If the request wants JSON, return the files directly
-        // This is useful for API responses or AJAX requests (Pagination)
-        if($request->wantsJson()){
-            return $files;
-        }
-
-        $files = FileResource::collection($files);
-
-        return Inertia::render('SharedByMe', compact('files'));
     }
 
     
